@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if invoice else 'New' }} Invoice — SmartExpense{% endblock %}
+{% block content %}
+<div class="flex items-center gap-3 mb-6">
+    <a href="/invoices" class="text-gray-400 hover:text-gray-600"><i class="fas fa-arrow-left"></i></a>
+    <h2 class="text-2xl font-bold text-gray-800">{{ 'Edit Invoice' if invoice else 'New Invoice' }}</h2>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-5">
+        <!-- Client info -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <h3 class="font-semibold text-gray-700 mb-4">Client Information</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Client Name *</label>
+                    <input type="text" id="client_name" value="{{ invoice.client_name if invoice else '' }}" required
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Client Email</label>
+                    <input type="email" id="client_email" value="{{ invoice.client_email if invoice else '' }}"
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Status</label>
+                    <select id="status" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        {% for s in ['draft', 'sent', 'paid'] %}
+                        <option value="{{ s }}" {% if invoice and invoice.status.value == s %}selected{% endif %}>{{ s.capitalize() }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Due Date</label>
+                    <input type="date" id="due_date" value="{{ invoice.due_date.strftime('%Y-%m-%d') if invoice and invoice.due_date else '' }}"
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+            </div>
+        </div>
+
+        <!-- Line items -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-700">Line Items</h3>
+                <button onclick="addItem()" class="text-sm bg-purple-100 text-purple-700 px-3 py-1.5 rounded-lg hover:bg-purple-200 transition">
+                    <i class="fas fa-plus mr-1"></i> Add Item
+                </button>
+            </div>
+            <div id="items-container" class="space-y-3">
+                {% if invoice and invoice.items %}
+                {% for item in invoice.items %}
+                <div class="item-row grid grid-cols-12 gap-2 items-center">
+                    <input type="text" placeholder="Description" value="{{ item.description }}"
+                        class="col-span-6 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 item-desc">
+                    <input type="number" placeholder="Qty" value="{{ item.quantity }}" min="0.01" step="0.01"
+                        class="col-span-2 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 item-qty" oninput="calcTotal()">
+                    <input type="number" placeholder="Price" value="{{ item.unit_price }}" min="0" step="0.01"
+                        class="col-span-3 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 item-price" oninput="calcTotal()">
+                    <button onclick="removeItem(this)" class="col-span-1 text-red-400 hover:text-red-600 text-center"><i class="fas fa-times"></i></button>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="item-row grid grid-cols-12 gap-2 items-center">
+                    <input type="text" placeholder="Description" class="col-span-6 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 item-desc">
+                    <input type="number" placeholder="Qty" value="1" min="0.01" step="0.01" class="col-span-2 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 item-qty" oninput="calcTotal()">
+                    <input type="number" placeholder="Price" min="0" step="0.01" class="col-span-3 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 item-price" oninput="calcTotal()">
+                    <button onclick="removeItem(this)" class="col-span-1 text-red-400 hover:text-red-600 text-center"><i class="fas fa-times"></i></button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+            <textarea id="notes" rows="3" placeholder="Payment terms, notes..."
+                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">{{ invoice.notes if invoice else '' }}</textarea>
+        </div>
+    </div>
+
+    <!-- Summary sidebar -->
+    <div class="space-y-5">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sticky top-6">
+            <h3 class="font-semibold text-gray-700 mb-4">Summary</h3>
+            <div class="space-y-2 text-sm mb-4">
+                <div class="flex justify-between text-gray-600">
+                    <span>Subtotal</span><span id="subtotal">$0.00</span>
+                </div>
+                <div class="flex justify-between font-bold text-gray-800 text-base pt-2 border-t">
+                    <span>Total</span><span id="total-display">$0.00</span>
+                </div>
+            </div>
+            <button onclick="saveInvoice()" id="save-btn"
+                class="w-full bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-lg font-medium text-sm transition">
+                <i class="fas fa-save mr-2"></i>{{ 'Update Invoice' if invoice else 'Create Invoice' }}
+            </button>
+            <a href="/invoices" class="block text-center text-sm text-gray-500 hover:text-gray-700 mt-3">Cancel</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+const INVOICE_ID = {{ invoice.id if invoice else 'null' }};
+
+function addItem() {
+    const row = `<div class="item-row grid grid-cols-12 gap-2 items-center">
+        <input type="text" placeholder="Description" class="col-span-6 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 item-desc">
+        <input type="number" placeholder="Qty" value="1" min="0.01" step="0.01" class="col-span-2 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 item-qty" oninput="calcTotal()">
+        <input type="number" placeholder="Price" min="0" step="0.01" class="col-span-3 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 item-price" oninput="calcTotal()">
+        <button onclick="removeItem(this)" class="col-span-1 text-red-400 hover:text-red-600 text-center"><i class="fas fa-times"></i></button>
+    </div>`;
+    $('#items-container').append(row);
+}
+
+function removeItem(btn) {
+    if ($('.item-row').length > 1) { $(btn).closest('.item-row').remove(); calcTotal(); }
+}
+
+function calcTotal() {
+    let total = 0;
+    $('.item-row').each(function() {
+        const qty = parseFloat($(this).find('.item-qty').val()) || 0;
+        const price = parseFloat($(this).find('.item-price').val()) || 0;
+        total += qty * price;
+    });
+    $('#subtotal, #total-display').text('$' + total.toFixed(2));
+}
+
+function saveInvoice() {
+    const items = [];
+    let valid = true;
+    $('.item-row').each(function() {
+        const desc = $(this).find('.item-desc').val().trim();
+        const qty = parseFloat($(this).find('.item-qty').val());
+        const price = parseFloat($(this).find('.item-price').val());
+        if (desc) items.push({ description: desc, quantity: qty || 1, unit_price: price || 0 });
+    });
+    if (!$('#client_name').val().trim()) { showToast('Client name is required', 'error'); return; }
+    if (items.length === 0) { showToast('Add at least one line item', 'error'); return; }
+
+    const data = {
+        client_name: $('#client_name').val().trim(),
+        client_email: $('#client_email').val().trim(),
+        status: $('#status').val(),
+        due_date: $('#due_date').val(),
+        notes: $('#notes').val().trim(),
+        items
+    };
+
+    const method = INVOICE_ID ? 'PUT' : 'POST';
+    const url = INVOICE_ID ? `/api/invoices/${INVOICE_ID}` : '/api/invoices';
+    $('#save-btn').text('Saving...').prop('disabled', true);
+    $.ajax({
+        url, method, contentType: 'application/json', data: JSON.stringify(data),
+        success: (res) => { showToast('Invoice saved!'); setTimeout(() => window.location.href = res.redirect, 800); },
+        error: (xhr) => { showToast(xhr.responseJSON?.detail || 'Save failed', 'error'); $('#save-btn').text('{{ "Update Invoice" if invoice else "Create Invoice" }}').prop('disabled', false); }
+    });
+}
+
+calcTotal();
+</script>
+{% endblock %}

@@ -1,0 +1,70 @@
+/* SmartExpense — Custom styles */
+
+/* Sidebar active state */
+.sidebar-link.active {
+    background: rgba(139, 92, 246, 0.12);
+    color: #7c3aed;
+    border-left: 3px solid #7c3aed;
+    font-weight: 600;
+}
+
+/* Stat cards hover effect */
+.stat-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(109, 40, 217, 0.1);
+}
+
+/* Toast notifications */
+.toast {
+    animation: slideIn 0.3s ease;
+}
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0);   opacity: 1; }
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+    animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Table row hover */
+.table-row-hover:hover {
+    background-color: #faf5ff;
+}
+
+/* Status badges */
+.badge-draft { background: #f3f4f6; color: #6b7280; }
+.badge-sent  { background: #dbeafe; color: #1d4ed8; }
+.badge-paid  { background: #d1fae5; color: #065f46; }
+
+/* Line item row transition */
+.line-item-row {
+    transition: opacity 0.2s ease;
+}
+
+/* Scrollable table wrapper */
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Focus ring for inputs */
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+    border-color: #7c3aed;
+}
+
+/* Print styles for invoice */
+@media print {
+    aside, header, .no-print { display: none !important; }
+    main { padding: 0 !important; }
+}

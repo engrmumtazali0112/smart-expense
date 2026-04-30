@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Expenses — SmartExpense{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h2 class="text-2xl font-bold text-gray-800">Expenses</h2>
+        <p class="text-gray-500 text-sm mt-1">{{ total }} expense{{ 's' if total != 1 }} · Total: ${{ "%.2f"|format(total_amount) }}</p>
+    </div>
+    <button onclick="openModal()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+        <i class="fas fa-plus"></i> Add Expense
+    </button>
+</div>
+
+<!-- Filters -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-5">
+    <form method="GET" action="/expenses" class="flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Category</label>
+            <select name="category" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                <option value="{{ cat }}" {% if category_filter == cat %}selected{% endif %}>{{ cat.capitalize() }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">From</label>
+            <input type="date" name="date_from" value="{{ date_from or '' }}" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">To</label>
+            <input type="date" name="date_to" value="{{ date_to or '' }}" class="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+        </div>
+        <button type="submit" class="bg-gray-700 text-white px-4 py-2 rounded-lg text-sm hover:bg-gray-800">Filter</button>
+        <a href="/expenses" class="text-sm text-gray-500 hover:text-gray-700 py-2">Clear</a>
+    </form>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    {% if expenses %}
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b">
+            <tr>
+                <th class="text-left px-5 py-3 text-gray-500 font-medium">Title</th>
+                <th class="text-left px-5 py-3 text-gray-500 font-medium hidden sm:table-cell">Category</th>
+                <th class="text-left px-5 py-3 text-gray-500 font-medium hidden md:table-cell">Date</th>
+                <th class="text-right px-5 py-3 text-gray-500 font-medium">Amount</th>
+                <th class="text-right px-5 py-3 text-gray-500 font-medium">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50" id="expenses-table">
+            {% for exp in expenses %}
+            <tr id="exp-{{ exp.id }}" class="hover:bg-gray-50 transition">
+                <td class="px-5 py-3">
+                    <p class="font-medium text-gray-800">{{ exp.title }}</p>
+                    {% if exp.description %}<p class="text-xs text-gray-400 mt-0.5">{{ exp.description[:60] }}</p>{% endif %}
+                </td>
+                <td class="px-5 py-3 hidden sm:table-cell">
+                    <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs capitalize">{{ exp.category.value }}</span>
+                </td>
+                <td class="px-5 py-3 text-gray-500 hidden md:table-cell">{{ exp.date.strftime('%b %d, %Y') }}</td>
+                <td class="px-5 py-3 text-right font-semibold text-red-500">-${{ "%.2f"|format(exp.amount) }}</td>
+                <td class="px-5 py-3 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                        <button onclick="editExpense({{ exp.id }}, '{{ exp.title }}', {{ exp.amount }}, '{{ exp.category.value }}', '{{ exp.description or '' }}', '{{ exp.date.strftime('%Y-%m-%d') }}')"
+                            class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteExpense({{ exp.id }})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if total_pages > 1 %}
+    <div class="px-5 py-3 border-t flex items-center justify-between">
+        <p class="text-sm text-gray-500">Page {{ page }} of {{ total_pages }}</p>
+        <div class="flex gap-2">
+            {% if page > 1 %}<a href="?page={{ page-1 }}{% if category_filter %}&category={{ category_filter }}{% endif %}" class="px-3 py-1 bg-gray-100 rounded text-sm">← Prev</a>{% endif %}
+            {% if page < total_pages %}<a href="?page={{ page+1 }}{% if category_filter %}&category={{ category_filter }}{% endif %}" class="px-3 py-1 bg-orange-500 text-white rounded text-sm">Next →</a>{% endif %}
+        </div>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="text-center py-16 text-gray-400">
+        <i class="fas fa-wallet text-5xl mb-4"></i>
+        <p class="text-lg font-medium">No expenses found</p>
+        <button onclick="openModal()" class="mt-3 bg-orange-500 text-white px-5 py-2 rounded-lg text-sm hover:bg-orange-600">Add your first expense</button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add/Edit Modal -->
+<div id="expense-modal" class="hidden fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+        <div class="flex items-center justify-between mb-5">
+            <h3 id="modal-title" class="text-lg font-bold text-gray-800">Add Expense</h3>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="space-y-4">
+            <input type="hidden" id="edit-id">
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">Title *</label>
+                <input type="text" id="exp-title" placeholder="e.g. Office supplies"
+                    class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Amount *</label>
+                    <input type="number" id="exp-amount" min="0.01" step="0.01" placeholder="0.00"
+                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Category</label>
+                    <select id="exp-category" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+                        {% for cat in categories %}
+                        <option value="{{ cat }}">{{ cat.capitalize() }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">Date</label>
+                <input type="date" id="exp-date" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-600 mb-1">Description</label>
+                <textarea id="exp-desc" rows="2" placeholder="Optional notes..."
+                    class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"></textarea>
+            </div>
+        </div>
+        <div class="flex gap-3 mt-5">
+            <button onclick="saveExpense()" id="modal-save-btn"
+                class="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2.5 rounded-lg font-medium text-sm transition">Save Expense</button>
+            <button onclick="closeModal()" class="px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function openModal() {
+    $('#modal-title').text('Add Expense');
+    $('#edit-id').val('');
+    $('#exp-title, #exp-amount, #exp-desc').val('');
+    $('#exp-category').val('other');
+    $('#exp-date').val(new Date().toISOString().split('T')[0]);
+    $('#expense-modal').removeClass('hidden');
+}
+function closeModal() { $('#expense-modal').addClass('hidden'); }
+function editExpense(id, title, amount, category, desc, date) {
+    $('#modal-title').text('Edit Expense');
+    $('#edit-id').val(id);
+    $('#exp-title').val(title);
+    $('#exp-amount').val(amount);
+    $('#exp-category').val(category);
+    $('#exp-desc').val(desc);
+    $('#exp-date').val(date);
+    $('#expense-modal').removeClass('hidden');
+}
+function saveExpense() {
+    if (!$('#exp-title').val().trim() || !$('#exp-amount').val()) {
+        showToast('Title and amount are required', 'error'); return;
+    }
+    const id = $('#edit-id').val();
+    const data = {
+        title: $('#exp-title').val().trim(),
+        amount: parseFloat($('#exp-amount').val()),
+        category: $('#exp-category').val(),
+        description: $('#exp-desc').val().trim(),
+        date: $('#exp-date').val()
+    };
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `/api/expenses/${id}` : '/api/expenses';
+    $('#modal-save-btn').text('Saving...').prop('disabled', true);
+    $.ajax({
+        url, method, contentType: 'application/json', data: JSON.stringify(data),
+        success: () => { showToast('Expense saved!'); setTimeout(() => location.reload(), 800); },
+        error: (xhr) => { showToast(xhr.responseJSON?.detail || 'Failed', 'error'); $('#modal-save-btn').text('Save Expense').prop('disabled', false); }
+    });
+}
+function deleteExpense(id) {
+    if (!confirm('Delete this expense?')) return;
+    $.ajax({ url: `/api/expenses/${id}`, method: 'DELETE',
+        success: () => { $(`#exp-${id}`).fadeOut(300, function() { $(this).remove(); }); showToast('Expense deleted'); },
+        error: () => showToast('Failed to delete', 'error')
+    });
+}
+// Set today as default date
+$('#exp-date').val(new Date().toISOString().split('T')[0]);
+</script>
+{% endblock %}
