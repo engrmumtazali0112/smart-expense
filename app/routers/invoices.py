@@ -13,14 +13,15 @@ import json, random, string
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
-def gen_invoice_number():
+def gen_invoice_number() -> str:
     suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
     return f"INV-{datetime.now().strftime('%Y%m')}-{suffix}"
 
 @router.get("/invoices", response_class=HTMLResponse)
 def invoices_page(request: Request, db: Session = Depends(get_db),
                   current_user: User = Depends(get_current_user),
-                  page: int = 1, status: str = None):
+                  page: int = 1,
+                  status: Optional[str] = None):
     per_page = 10
     query = db.query(Invoice).filter(Invoice.user_id == current_user.id)
     if status:
@@ -68,7 +69,9 @@ def edit_invoice_page(invoice_id: int, request: Request, db: Session = Depends(g
 async def create_invoice(request: Request, db: Session = Depends(get_db),
                          current_user: User = Depends(get_current_user)):
     data = await request.json()
-    due_date = datetime.fromisoformat(data["due_date"]) if data.get("due_date") else None
+    due_date: Optional[datetime] = (
+        datetime.fromisoformat(data["due_date"]) if data.get("due_date") else None
+    )
     invoice = Invoice(
         invoice_number=gen_invoice_number(),
         client_name=data["client_name"],
@@ -103,7 +106,9 @@ async def update_invoice(invoice_id: int, request: Request, db: Session = Depend
     invoice.client_email = data.get("client_email", "")
     invoice.status = data.get("status", invoice.status)
     invoice.notes = data.get("notes", "")
-    invoice.due_date = datetime.fromisoformat(data["due_date"]) if data.get("due_date") else None
+    invoice.due_date = (
+        datetime.fromisoformat(data["due_date"]) if data.get("due_date") else None
+    )
     for item in invoice.items:
         db.delete(item)
     db.flush()

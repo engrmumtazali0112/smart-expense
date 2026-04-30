@@ -7,6 +7,7 @@ from app.database import get_db
 from app.models import User, Expense, ExpenseCategory
 from app.services.auth import get_current_user
 from datetime import datetime
+from typing import Optional
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -14,8 +15,10 @@ templates = Jinja2Templates(directory="app/templates")
 @router.get("/expenses", response_class=HTMLResponse)
 def expenses_page(request: Request, db: Session = Depends(get_db),
                   current_user: User = Depends(get_current_user),
-                  page: int = 1, category: str = None,
-                  date_from: str = None, date_to: str = None):
+                  page: int = 1,
+                  category: Optional[str] = None,
+                  date_from: Optional[str] = None,
+                  date_to: Optional[str] = None):
     per_page = 10
     query = db.query(Expense).filter(Expense.user_id == current_user.id)
     if category:
@@ -34,7 +37,7 @@ def expenses_page(request: Request, db: Session = Depends(get_db),
         "total_pages": (total + per_page - 1) // per_page,
         "category_filter": category, "date_from": date_from, "date_to": date_to,
         "categories": [c.value for c in ExpenseCategory],
-        "total": total, "total_amount": round(total_amount, 2)
+        "total": total, "total_amount": round(float(total_amount), 2)
     })
 
 @router.post("/api/expenses")
@@ -53,8 +56,10 @@ async def create_expense(request: Request, db: Session = Depends(get_db),
     db.commit()
     db.refresh(expense)
     return JSONResponse({
-        "id": expense.id, "title": expense.title,
-        "amount": expense.amount, "category": expense.category.value,
+        "id": expense.id,
+        "title": str(expense.title),
+        "amount": float(expense.amount),
+        "category": expense.category.value,
         "date": expense.date.strftime("%Y-%m-%d")
     })
 
@@ -88,7 +93,9 @@ def delete_expense(expense_id: int, db: Session = Depends(get_db),
 @router.get("/api/expenses")
 def list_expenses_api(db: Session = Depends(get_db),
                       current_user: User = Depends(get_current_user),
-                      category: str = None, date_from: str = None, date_to: str = None):
+                      category: Optional[str] = None,
+                      date_from: Optional[str] = None,
+                      date_to: Optional[str] = None):
     query = db.query(Expense).filter(Expense.user_id == current_user.id)
     if category:
         query = query.filter(Expense.category == category)
@@ -97,5 +104,5 @@ def list_expenses_api(db: Session = Depends(get_db),
     if date_to:
         query = query.filter(Expense.date <= datetime.fromisoformat(date_to))
     expenses = query.order_by(Expense.date.desc()).all()
-    return [{"id": e.id, "title": e.title, "amount": e.amount,
+    return [{"id": e.id, "title": e.title, "amount": float(e.amount),
              "category": e.category.value, "date": str(e.date)} for e in expenses]

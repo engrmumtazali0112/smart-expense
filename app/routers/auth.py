@@ -37,9 +37,11 @@ def signup(name: str = Form(...), email: str = Form(...), password: str = Form(.
 @router.post("/api/auth/login")
 def login(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).first()
-    if not user or not verify_password(password, user.hashed_password):
+    # Cast hashed_password to str to satisfy Pylance — SQLAlchemy Column values
+    # are typed as Column[str] but are plain str at runtime
+    if not user or not verify_password(password, str(user.hashed_password)):
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    token = create_access_token({"sub": user.email})
+    token = create_access_token({"sub": str(user.email)})
     response = JSONResponse({"message": "Login successful", "redirect": "/dashboard"})
     response.set_cookie("access_token", token, httponly=True, max_age=86400)
     return response
