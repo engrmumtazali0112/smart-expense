@@ -1,208 +1,322 @@
-# Smart Expense & Invoice Management System
+<div align="center">
 
-A focused, production-quality web application for managing invoices and expenses — built with **FastAPI**, **SQLAlchemy**, **Jinja2**, and **jQuery**.
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=32&duration=2800&pause=2000&color=7C3AED&center=true&vCenter=true&width=940&lines=💸+Smart+Expense+%26+Invoice+Manager;⚡+FastAPI+%2B+SQLAlchemy+%2B+jQuery;🚀+Python+Developer+Assessment+—+Times+TX+GmbH" alt="Typing SVG" />
 
-> **Assessment submission for: Python Developer Role @ Times TX GmbH**
+<br/>
+
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.136-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-red?style=for-the-badge&logo=python&logoColor=white)](https://sqlalchemy.org)
+[![jQuery](https://img.shields.io/badge/jQuery-3.7-0769AD?style=for-the-badge&logo=jquery&logoColor=white)](https://jquery.com)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind-CDN-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+
+<br/>
+
+> **🏢 Assessment Submission — Python Developer Role @ Times TX GmbH**
+> Submitted by **Mumtaz Ali** · [📧 engrmumtazali01@gmail.com](mailto:engrmumtazali01@gmail.com) · [🐙 github.com/engrmumtazali0112](https://github.com/engrmumtazali0112)
+
+<br/>
+
+```
+⚡ 3 bugs fixed  ·  ✅ All features delivered  ·  🎁 All 3 bonus features included
+```
+
+</div>
 
 ---
 
-## Quick Start
+## 🖼️ Live Demo Screenshots
 
-**Prerequisites:** Python 3.10+, pip
+<div align="center">
+
+### 📊 Dashboard
+![Dashboard](Demo/Dashboard.PNG)
+
+### 🧾 Invoices
+![Invoices](Demo/Invoices.PNG)
+
+### 💸 Expenses
+![Expenses](Demo/Expensive.PNG)
+
+### 🔌 API Docs (Swagger UI)
+![API](Demo/api.PNG)
+
+</div>
+
+---
+
+## ⚡ Quick Start
 
 ```bash
-# 1. Clone / unzip the repository
+# 📦 1. Clone the repository
+git clone https://github.com/engrmumtazali0112/smart-expense.git
 cd smart-expense
 
-# 2. Create and activate virtual environment
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
+# 🐍 2. Create virtual environment
+python -m venv .venv
+.venv\Scripts\activate          # Windows
+# source .venv/bin/activate     # Mac / Linux
 
-# 3. Install dependencies
+# 📥 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Configure environment (SQLite works out of the box — no DB setup needed)
-cp .env.example .env
+# 🌱 4. Load demo data (optional but recommended)
+python seed_demo.py
 
-# 5. Run the server
+# 🚀 5. Start the server
 python main.py
 
-# 6. Open http://localhost:8000
+# 🌐 6. Open in browser
+#  → http://localhost:8000
 ```
 
-### Docker (one command)
+### 🐳 Docker (one command)
 ```bash
 docker-compose up --build
 # → http://localhost:8000
 ```
 
+### 🔐 Demo Login Credentials
+| Field | Value |
+|-------|-------|
+| 📧 Email | `demo@smartexpense.com` |
+| 🔑 Password | `demo1234` |
+
+> Run `python seed_demo.py` first to populate 5 invoices + 18 expenses across all categories.
+
 ---
 
-## Features
+## 🛠️ Tech Stack
 
-### ✅ Authentication
-- Secure signup and login
-- Passwords hashed with **bcrypt** (via direct `bcrypt` library — avoids passlib backend errors on Python 3.12+)
-- JWT stored in **HttpOnly cookie** (24-hour expiry, XSS-safe)
+| Layer | Technology | Version | Purpose |
+|-------|-----------|---------|---------|
+| 🐍 Backend | FastAPI | 0.136.1 | REST API + HTML routing |
+| 🗄️ ORM | SQLAlchemy | 2.0.49 | Database models & queries |
+| 🎨 Frontend | Jinja2 + Tailwind | 3.1.6 | Server-side templates |
+| ⚡ AJAX | jQuery | 3.7.1 | No-reload interactions |
+| 📊 Charts | Chart.js | Latest | Donut chart on dashboard |
+| 🔐 Auth | bcrypt + JWT | 4.1.3 | Secure password hashing |
+| 📄 PDF | ReportLab | 4.5.0 | Invoice PDF generation |
+| 🗃️ Database | SQLite / PostgreSQL | — | Zero-config default |
+| 🐳 Container | Docker | — | One-command deployment |
+
+---
+
+## ✅ Features
+
+<details open>
+<summary><b>🔐 Authentication</b></summary>
+
+- Signup and login forms with validation
+- Passwords hashed with **bcrypt** (direct library — bypasses passlib's Python 3.12+ backend bug)
+- JWT stored in **HttpOnly cookie** — XSS-safe, 24-hour expiry
 - All protected routes auto-redirect to `/login`
 
-### ✅ Invoice Management
-- Create invoices with **multiple line items**
+</details>
+
+<details open>
+<summary><b>🧾 Invoice Management</b></summary>
+
+- Create invoices with **multiple line items** — live subtotal preview as you type
 - Auto-generated invoice numbers (`INV-YYYYMM-XXXXXX`)
-- Status workflow: **Draft → Sent → Paid**
-- Edit, delete, and detailed invoice view
-- **PDF export** — professional layout generated with ReportLab
-- Pagination (10/page) with status filter tabs
+- Status workflow: `Draft` → `Sent` → `Paid` with color-coded badges
+- Invoice list with **filter tabs** (All / Draft / Sent / Paid)
+- Full invoice detail page with line item breakdown
+- Edit and delete with confirmation
+- **PDF export** — professional branded layout (ReportLab)
+- **Pagination** — 10 per page
 
-### ✅ Expense Tracking
-- Add, edit, and delete expenses via **AJAX modal** (no full page reloads)
-- 8 categories: Food, Travel, Utilities, Software, Hardware, Marketing, Salary, Other
+</details>
+
+<details open>
+<summary><b>💸 Expense Tracking</b></summary>
+
+- Add, edit, delete via **AJAX modal** — zero page reloads
+- **8 categories**: Food · Travel · Utilities · Software · Hardware · Marketing · Salary · Other
 - Filter by **category** and **date range**
-- Running total shown in the list header
+- Running total displayed in the list header
+- **Pagination** — 10 per page
 
-### ✅ Dashboard
-- Summary stats: total invoices, invoice revenue, total expenses, combined total
+</details>
+
+<details open>
+<summary><b>📊 Dashboard</b></summary>
+
+- **4 stat cards**: Total Invoices · Invoice Revenue · Total Expenses · Combined Total
 - **Donut chart** — expense breakdown by category (Chart.js)
-- Recent invoices and expenses at a glance
-- Quick-action links to create new records
+- Recent invoices and recent expenses panels
+- Quick-action buttons (+ New Invoice, + Add Expense)
+- Personalized greeting with user's name
 
-### ✅ REST API
-Full JSON CRUD API alongside the HTML views:
+</details>
 
-| Method   | Endpoint                     | Description               |
-|----------|------------------------------|---------------------------|
-| `POST`   | `/api/auth/signup`           | Create account            |
-| `POST`   | `/api/auth/login`            | Login → JWT cookie        |
-| `GET`    | `/api/invoices`              | List all invoices (JSON)  |
-| `POST`   | `/api/invoices`              | Create invoice            |
-| `PUT`    | `/api/invoices/{id}`         | Update invoice            |
-| `DELETE` | `/api/invoices/{id}`         | Delete invoice            |
-| `GET`    | `/api/invoices/{id}/pdf`     | Download PDF export       |
-| `GET`    | `/api/expenses`              | List expenses (filterable)|
-| `POST`   | `/api/expenses`              | Create expense            |
-| `PUT`    | `/api/expenses/{id}`         | Update expense            |
-| `DELETE` | `/api/expenses/{id}`         | Delete expense            |
+<details open>
+<summary><b>🔌 REST API</b></summary>
 
-Interactive API docs auto-generated at: **http://localhost:8000/docs**
+Full JSON CRUD API — all endpoints documented in Swagger UI at `/docs`
 
-### ✅ Bonus Features
-- **PDF export** for invoices (ReportLab, branded layout)
-- **Pagination** on both invoice and expense list views
-- **Docker** setup with `Dockerfile` + `docker-compose.yml`
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/auth/signup` | Create account |
+| `POST` | `/api/auth/login` | Login → JWT cookie |
+| `GET` | `/api/invoices` | List invoices (JSON) |
+| `POST` | `/api/invoices` | Create invoice + line items |
+| `PUT` | `/api/invoices/{id}` | Update invoice |
+| `DELETE` | `/api/invoices/{id}` | Delete invoice |
+| `GET` | `/api/invoices/{id}/pdf` | Download PDF |
+| `GET` | `/api/expenses` | List expenses (filterable) |
+| `POST` | `/api/expenses` | Create expense |
+| `PUT` | `/api/expenses/{id}` | Update expense |
+| `DELETE` | `/api/expenses/{id}` | Delete expense |
+
+🔗 **Interactive docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
+
+</details>
+
+<details open>
+<summary><b>🎁 Bonus Features (all 3 delivered)</b></summary>
+
+- ✅ **PDF export** for invoices — branded, professional layout
+- ✅ **Pagination** on both invoice and expense list views
+- ✅ **Docker** — `Dockerfile` + `docker-compose.yml` included
+
+</details>
 
 ---
 
-## Project Structure
+## 📁 Project Structure
 
 ```
 smart-expense/
-├── app/
-│   ├── main.py              # FastAPI app factory, router registration
-│   ├── database.py          # SQLAlchemy engine, session factory, init_db
-│   ├── models.py            # User, Invoice, InvoiceItem, Expense ORM models
-│   ├── routers/
-│   │   ├── auth.py          # Signup, login, logout (HTML + JSON)
-│   │   ├── dashboard.py     # Aggregated stats + chart data
-│   │   ├── invoices.py      # Invoice CRUD, PDF download
-│   │   └── expenses.py      # Expense CRUD with date/category filters
-│   ├── services/
-│   │   ├── auth.py          # JWT creation, bcrypt hashing, auth dependencies
-│   │   └── pdf.py           # ReportLab invoice PDF generator
-│   ├── static/
-│   │   ├── css/app.css      # Custom styles, animations, print styles
-│   │   └── js/app.js        # Shared utilities (toasts, AJAX helpers)
-│   └── templates/
-│       ├── base.html        # Responsive sidebar layout, toast system
-│       ├── auth/            # login.html, signup.html
-│       ├── dashboard/       # index.html (stats + chart)
-│       ├── invoices/        # list.html, form.html, detail.html
-│       └── expenses/        # list.html (AJAX modal)
-├── main.py                  # Entry point: uvicorn with reload
-├── requirements.txt
-├── Dockerfile
-├── docker-compose.yml
-└── .env.example
+│
+├── 📂 app/
+│   ├── main.py                  # FastAPI app, lifespan, router registration
+│   ├── database.py              # SQLAlchemy engine, session factory, init_db
+│   ├── models.py                # User, Invoice, InvoiceItem, Expense ORM models
+│   │
+│   ├── 📂 routers/
+│   │   ├── auth.py              # Signup, login, logout (HTML + JSON)
+│   │   ├── dashboard.py         # Stats aggregation + chart data
+│   │   ├── invoices.py          # Invoice CRUD + PDF download
+│   │   └── expenses.py          # Expense CRUD + date/category filters
+│   │
+│   ├── 📂 services/
+│   │   ├── auth.py              # JWT creation, bcrypt hashing, auth dependency
+│   │   └── pdf.py               # ReportLab branded PDF generator
+│   │
+│   ├── 📂 static/
+│   │   ├── css/app.css          # Custom styles, animations, print styles
+│   │   └── js/app.js            # Toast notifications, AJAX helpers
+│   │
+│   └── 📂 templates/
+│       ├── base.html            # Responsive sidebar layout + toast system
+│       ├── 📂 auth/             # login.html, signup.html
+│       ├── 📂 dashboard/        # index.html (stats + chart)
+│       ├── 📂 invoices/         # list.html, form.html, detail.html
+│       └── 📂 expenses/         # list.html (AJAX modal)
+│
+├── 📂 Demo/                     # Screenshot images for README
+├── seed_demo.py                 # 🌱 Demo data seeder (5 invoices + 18 expenses)
+├── main.py                      # Entry point — uvicorn with hot reload
+├── requirements.txt             # Pinned Python 3.14-compatible versions
+├── Dockerfile                   # Container build
+├── docker-compose.yml           # One-command deployment
+└── .env.example                 # Environment variable template
 ```
 
 ---
 
-## Database Schema
+## 🗄️ Database Schema
 
-| Table           | Key Columns                                                    |
-|-----------------|----------------------------------------------------------------|
-| `users`         | id, name, email (unique), hashed_password, created_at         |
-| `invoices`      | id, invoice_number (unique), client_name, client_email, status, due_date, notes, user_id |
-| `invoice_items` | id, description, quantity, unit_price, invoice_id             |
-| `expenses`      | id, title, amount, category (enum), description, date, user_id|
-
-SQLite is used by default — zero configuration needed. Switch to PostgreSQL by setting `DATABASE_URL` in `.env`:
+```sql
+┌─────────────────────────────────────────────────────────────────┐
+│  users          id · name · email(unique) · hashed_password     │
+│                 created_at                                       │
+├─────────────────────────────────────────────────────────────────┤
+│  invoices       id · invoice_number(unique) · client_name       │
+│                 client_email · status(draft/sent/paid)          │
+│                 due_date · notes · user_id(FK→users)            │
+├─────────────────────────────────────────────────────────────────┤
+│  invoice_items  id · description · quantity · unit_price        │
+│                 invoice_id(FK→invoices)                         │
+├─────────────────────────────────────────────────────────────────┤
+│  expenses       id · title · amount · category(enum)            │
+│                 description · date · user_id(FK→users)          │
+└─────────────────────────────────────────────────────────────────┘
 ```
+
+**Switch to PostgreSQL** with a single env var in `.env`:
+```env
 DATABASE_URL=postgresql://user:password@localhost/smart_expense
 ```
 
 ---
 
-## Key Technical Decisions
+## 🧠 Key Technical Decisions
 
-**FastAPI over Django/Flask** — Async-ready, clean dependency injection for auth and DB sessions, and automatic OpenAPI docs make it the best fit for an API-first app where the same endpoints serve HTML views and JSON consumers.
+**🚀 FastAPI over Django/Flask** — Chosen for async support, automatic OpenAPI/Swagger UI (free at `/docs`), and clean dependency injection. The same routes serve both HTML templates (for browser) and JSON (for API clients) with no duplication.
 
-**Bcrypt via direct library** — `passlib[bcrypt]` has a known backend-loading issue on Python 3.12+ (the error in the bug report). The fix is to import `bcrypt` directly and bypass passlib's backend discovery entirely. `bcrypt==4.1.3` is added explicitly to `requirements.txt`.
+**🔐 bcrypt via direct library** — `passlib[bcrypt]` has a known backend-loading bug on Python 3.12+ where `importlib` changes cause `MissingBackendError` even when `bcrypt` is installed. Fixed by calling `bcrypt.hashpw()` and `bcrypt.checkpw()` directly, bypassing passlib entirely.
 
-**JWT in HttpOnly cookie** — More secure than localStorage. Automatic with every request; inaccessible to JavaScript, preventing XSS token theft.
+**🍪 JWT in HttpOnly cookie** — More secure than localStorage. The token is sent automatically with every request and is invisible to JavaScript, eliminating XSS-based token theft.
 
-**jQuery AJAX for key interactions** — Expense create/edit/delete happens without page reloads. Invoice save POSTs JSON and redirects on success. Regular navigation used for page transitions where AJAX adds no UX value.
+**⚡ jQuery AJAX for key interactions** — Expense CRUD (create, edit, delete) runs through modals with zero page reloads. Invoice form POSTs JSON and redirects server-side. Standard navigation is used where AJAX adds no real UX benefit.
 
-**SQLite default, PostgreSQL-ready** — A single env var makes switching effortless. Removes all setup friction for reviewers.
-
-**No frontend framework** — Jinja2 + Tailwind CDN + jQuery keeps the stack simple, loads fast, and requires zero build tooling. Tailwind CDN is acceptable for an assessment; a production build would use PostCSS.
+**🗃️ SQLite default, PostgreSQL-ready** — Zero setup friction for the reviewer. One env var switches the database engine completely.
 
 ---
 
-## Tradeoffs & Notes
+## ⚖️ Tradeoffs & Honest Notes
 
-- **SQLite** by default for zero-setup. Production: set `DATABASE_URL` to PostgreSQL.
-- **No Alembic migrations** — `init_db()` creates tables at startup. With more time, Alembic would be used to version schema changes safely.
-- **No email verification** — Out of scope for the 72-hour timeframe.
-- **Tailwind CDN** — Fine for demo/assessment. Production would use PostCSS + PurgeCSS build.
-- The API is authenticated via cookie; a proper API-key or Bearer-token flow would be added for headless consumers in production.
-
----
-
-## What I'd Add With More Time
-
-1. Alembic migrations for schema versioning
-2. Email notifications when invoice status changes (SendGrid/Mailgun)
-3. CSV export for expense reports
-4. Multi-currency with live exchange rates
-5. Role-based access (admin, accountant, viewer)
-6. Proper test suite (pytest + httpx)
+| Decision | Reason | Production Alternative |
+|----------|--------|----------------------|
+| SQLite default | Zero reviewer setup friction | PostgreSQL via `DATABASE_URL` |
+| No Alembic | `init_db()` sufficient for assessment scope | Alembic with versioned migrations |
+| Tailwind CDN | No build tooling needed | PostCSS + PurgeCSS pipeline |
+| Cookie-based API auth | Works perfectly for browser clients | Bearer token for headless consumers |
+| No email verification | Out of scope for 72 hours | SendGrid / Mailgun integration |
 
 ---
 
-## Bugs Fixed
+## 🔮 What I'd Add With More Time
 
-**Root cause:** `passlib[bcrypt]` uses a lazy backend discovery system that fails on Python 3.12+ because of changes in how `importlib` finds submodules. The `MissingBackendError` appears even when `bcrypt` is installed.
-
-**Fix applied:**
-1. Added `bcrypt==4.1.3` explicitly to `requirements.txt`
-2. Replaced `passlib.context.CryptContext` with direct `bcrypt` library calls in `app/services/auth.py` — bypassing passlib's broken discovery entirely
-3. `hash_password()` now calls `bcrypt.hashpw()` directly; `verify_password()` calls `bcrypt.checkpw()` directly
-
+- [ ] 🗄️ Alembic migrations for safe schema versioning
+- [ ] 📧 Email notifications on invoice status changes (SendGrid)
+- [ ] 📤 CSV export for expense reports
+- [ ] 💱 Multi-currency with live exchange rates
+- [ ] 👥 Role-based access (admin / accountant / viewer)
+- [ ] 🧪 Full test suite with pytest + httpx
+- [ ] 📱 PWA support for mobile installation
 
 ---
 
-## Bug Fixes Applied
+## 🐛 Bugs Fixed During Development
 
-### Bug 1 — bcrypt / passlib MissingBackendError
-**Root cause:** `passlib[bcrypt]` lazy backend discovery breaks on Python 3.12+.
-**Fix:** Replaced `passlib.context.CryptContext` with direct `bcrypt` library calls in `app/services/auth.py`. Added `bcrypt==4.1.3` explicitly to `requirements.txt`.
+> Three Python 3.14 compatibility issues were identified and resolved:
 
-### Bug 2 — SQLAlchemy 2.0.30 TypeError on Python 3.14
-**Error:** `TypeError: Can't replace canonical symbol for '__firstlineno__'`
-**Root cause:** SQLAlchemy 2.0.30 uses `FastIntFlag` in a way that conflicts with Python 3.14's stricter `__firstlineno__` attribute handling in `enum`/`IntFlag`.
-**Fix:** Upgraded to `sqlalchemy==2.0.49` which includes the Python 3.14 compatibility patch.
+| # | Error | Root Cause | Fix Applied |
+|---|-------|-----------|-------------|
+| 1 | `passlib MissingBackendError` | passlib lazy backend discovery breaks on Python 3.12+ | Direct `bcrypt` library calls — bypass passlib entirely |
+| 2 | `SQLAlchemy TypeError __firstlineno__` | SQLAlchemy 2.0.30 `FastIntFlag` conflicts with Python 3.14 enum changes | Upgraded to `sqlalchemy==2.0.49` (official fix) |
+| 3 | `Jinja2 TypeError unhashable dict` | Starlette 1.0 changed `TemplateResponse` signature; `request` in context dict breaks LRU cache key | Updated all calls to `TemplateResponse(request, name, ctx)` |
 
-### Other Modernizations
-- `app/main.py`: Replaced deprecated `@app.on_event("startup")` with the modern `lifespan` context manager (required in FastAPI 0.115+)
-- `app/models.py`: Replaced `from sqlalchemy.ext.declarative import declarative_base` + `Base = declarative_base()` with the modern `class Base(DeclarativeBase): pass` pattern
-- All package versions bumped to latest stable (FastAPI 0.136.1, uvicorn 0.46.0, reportlab 4.5.0)
+---
+
+<div align="center">
+
+### Built with ❤️ by Mumtaz Ali
+
+[![GitHub](https://img.shields.io/badge/GitHub-engrmumtazali0112-181717?style=for-the-badge&logo=github)](https://github.com/engrmumtazali0112)
+[![Email](https://img.shields.io/badge/Email-engrmumtazali01%40gmail.com-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:engrmumtazali01@gmail.com)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Mumtaz%20Ali-0077B5?style=for-the-badge&logo=linkedin)](https://linkedin.com/in/mumtazali)
+
+<br/>
+
+*"A smaller scope done well will always score higher than a rushed implementation that covers everything."*
+*— Times TX GmbH Assessment Brief*
+
+⭐ **Star this repo if you found it helpful!**
+
+</div>
