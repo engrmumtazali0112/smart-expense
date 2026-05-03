@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, Float, DateTime, ForeignKey, Text, Enum
+from sqlalchemy import Integer, String, Float, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
 from datetime import datetime
 from typing import Optional, List
@@ -7,6 +7,12 @@ import enum
 
 class Base(DeclarativeBase):
     pass
+
+
+class UserRole(str, enum.Enum):
+    ADMIN = "admin"
+    MANAGER = "manager"
+    USER = "user"
 
 
 class ExpenseCategory(str, enum.Enum):
@@ -32,9 +38,16 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[str] = mapped_column(String(150), unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(String(20), default="user")
+    is_active: Mapped[bool] = mapped_column(default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    
     invoices: Mapped[List["Invoice"]] = relationship("Invoice", back_populates="owner", cascade="all, delete")
     expenses: Mapped[List["Expense"]] = relationship("Expense", back_populates="owner", cascade="all, delete")
+    
+    @property
+    def role_display(self) -> str:
+        return self.role.capitalize()
 
 
 class Invoice(Base):
@@ -43,7 +56,7 @@ class Invoice(Base):
     invoice_number: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     client_name: Mapped[str] = mapped_column(String(150), nullable=False)
     client_email: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
-    status: Mapped[InvoiceStatus] = mapped_column(Enum(InvoiceStatus), default=InvoiceStatus.draft)
+    status: Mapped[str] = mapped_column(String(20), default="draft")
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     due_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
@@ -75,9 +88,9 @@ class Expense(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     title: Mapped[str] = mapped_column(String(150), nullable=False)
     amount: Mapped[float] = mapped_column(Float, nullable=False)
-    category: Mapped[ExpenseCategory] = mapped_column(Enum(ExpenseCategory), default=ExpenseCategory.other)
+    category: Mapped[str] = mapped_column(String(50), default="other")
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
-    owner: Mapped["User"] = relationship("User", back_populates="expenses")     
+    owner: Mapped["User"] = relationship("User", back_populates="expenses")

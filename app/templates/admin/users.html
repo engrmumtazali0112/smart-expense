@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}User Management — SmartExpense{% endblock %}
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">User Management</h2>
+    <p class="text-gray-500 text-sm mt-1">Manage system users and their roles</p>
+</div>
+
+<div class="bg-white rounded-2xl shadow-xl border border-purple-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-gradient-to-r from-purple-50 to-indigo-50 border-b border-purple-100">
+                <tr>
+                    <th class="text-left px-5 py-4 text-gray-600 font-semibold">User</th>
+                    <th class="text-left px-5 py-4 text-gray-600 font-semibold">Email</th>
+                    <th class="text-left px-5 py-4 text-gray-600 font-semibold">Role</th>
+                    <th class="text-left px-5 py-4 text-gray-600 font-semibold">Status</th>
+                    <th class="text-left px-5 py-4 text-gray-600 font-semibold">Joined</th>
+                    <th class="text-right px-5 py-4 text-gray-600 font-semibold">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for u in users %}
+                <tr id="user-{{ u.id }}" class="hover:bg-purple-50/30 transition-all duration-200">
+                    <td class="px-5 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow">
+                                {{ u.name[0].upper() }}
+                            </div>
+                            <span class="font-medium text-gray-800">{{ u.name }}</span>
+                        </div>
+                    </td>
+                    <td class="px-5 py-4 text-gray-600">{{ u.email }}</td>
+                    <td class="px-5 py-4">
+                        <select onchange="updateRole({{ u.id }}, this.value)" 
+                            class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 {% if u.id == user.id %}opacity-50 cursor-not-allowed{% endif %}"
+                            {% if u.id == user.id %}disabled{% endif %}>
+                            <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Admin</option>
+                            <option value="manager" {% if u.role == 'manager' %}selected{% endif %}>Manager</option>
+                            <option value="user" {% if u.role == 'user' %}selected{% endif %}>User (Viewer)</option>
+                        </select>
+                    </td>
+                    <td class="px-5 py-4">
+                        <span class="px-2 py-1 rounded-full text-xs font-medium 
+                            {% if u.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                            {{ 'Active' if u.is_active else 'Inactive' }}
+                        </span>
+                    </td>
+                    <td class="px-5 py-4 text-gray-500 text-xs">{{ u.created_at.strftime('%b %d, %Y') }}</td>
+                    <td class="px-5 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick="toggleUserStatus({{ u.id }})" 
+                                class="p-1.5 rounded-lg {% if u.is_active %}text-red-500 hover:bg-red-50{% else %}text-green-500 hover:bg-green-50{% endif %} transition"
+                                {% if u.id == user.id %}disabled{% endif %}>
+                                <i class="fas {% if u.is_active %}fa-ban{% else %}fa-check-circle{% endif %}"></i>
+                            </button>
+                            <button onclick="deleteUser({{ u.id }})" 
+                                class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition"
+                                {% if u.id == user.id %}disabled{% endif %}>
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function updateRole(userId, role) {
+    $.ajax({
+        url: `/api/admin/users/${userId}/role`,
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({ role: role }),
+        success: () => {
+            showToast('Role updated successfully', 'success');
+            setTimeout(() => location.reload(), 800);
+        },
+        error: (xhr) => {
+            showToast(xhr.responseJSON?.detail || 'Failed to update role', 'error');
+        }
+    });
+}
+
+function toggleUserStatus(userId) {
+    $.ajax({
+        url: `/api/admin/users/${userId}/toggle`,
+        method: 'PUT',
+        success: () => {
+            showToast('User status updated successfully', 'success');
+            setTimeout(() => location.reload(), 800);
+        },
+        error: (xhr) => {
+            showToast(xhr.responseJSON?.detail || 'Failed to update status', 'error');
+        }
+    });
+}
+
+function deleteUser(userId) {
+    if (!confirm('Delete this user permanently? This will also delete all their data.')) return;
+    $.ajax({
+        url: `/api/admin/users/${userId}`,
+        method: 'DELETE',
+        success: () => {
+            showToast('User deleted successfully', 'success');
+            $(`#user-${userId}`).fadeOut(300, function() { $(this).remove(); });
+        },
+        error: (xhr) => {
+            showToast(xhr.responseJSON?.detail || 'Failed to delete user', 'error');
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -2,13 +2,25 @@
 {% block title %}Dashboard — SmartExpense{% endblock %}
 {% block content %}
 <div class="mb-6">
-    <h2 class="text-2xl font-bold text-gray-800">Good day, {{ user.name.split()[0] }} 👋</h2>
-    <p class="text-gray-500 text-sm mt-1">Here's your financial overview</p>
+    <h2 class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+        Good day, {{ user.name.split()[0] }} 👋
+    </h2>
+    <p class="text-gray-500 text-sm mt-1">
+        <i class="fas fa-{% if user.role == 'admin' %}crown{% elif user.role == 'manager' %}chart-line{% else %}eye{% endif %} mr-1"></i>
+        You are logged in as <span class="font-semibold capitalize">{{ user.role }}</span>
+        {% if user.role == 'admin' %}
+        <span class="text-purple-600">(Full Access)</span>
+        {% elif user.role == 'manager' %}
+        <span class="text-blue-600">(View & Manage)</span>
+        {% else %}
+        <span class="text-green-600">(Read Only - Cannot Create/Edit/Delete)</span>
+        {% endif %}
+    </p>
 </div>
 
 <!-- Stat cards -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-    <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all">
         <div class="flex items-center justify-between mb-3">
             <span class="text-sm text-gray-500 font-medium">Total Invoices</span>
             <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -18,7 +30,7 @@
         <p class="text-3xl font-bold text-gray-800">{{ total_invoices }}</p>
         <a href="/invoices" class="text-xs text-purple-600 hover:underline mt-1 block">View all →</a>
     </div>
-    <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all">
         <div class="flex items-center justify-between mb-3">
             <span class="text-sm text-gray-500 font-medium">Invoice Revenue</span>
             <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -28,7 +40,7 @@
         <p class="text-3xl font-bold text-gray-800">${{ "%.2f"|format(invoice_total) }}</p>
         <p class="text-xs text-gray-400 mt-1">Across all invoices</p>
     </div>
-    <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all">
         <div class="flex items-center justify-between mb-3">
             <span class="text-sm text-gray-500 font-medium">Total Expenses</span>
             <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -38,7 +50,7 @@
         <p class="text-3xl font-bold text-gray-800">{{ total_expenses }}</p>
         <a href="/expenses" class="text-xs text-orange-600 hover:underline mt-1 block">View all →</a>
     </div>
-    <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+    <div class="stat-card bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-lg transition-all">
         <div class="flex items-center justify-between mb-3">
             <span class="text-sm text-gray-500 font-medium">Combined Total</span>
             <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -68,7 +80,11 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <div class="flex items-center justify-between mb-4">
             <h3 class="font-semibold text-gray-700">Recent Invoices</h3>
+            {% if user.role != 'user' %}
             <a href="/invoices/new" class="text-xs bg-purple-600 text-white px-3 py-1 rounded-lg hover:bg-purple-700">+ New</a>
+            {% else %}
+            <span class="text-xs text-gray-400 px-3 py-1">Read Only</span>
+            {% endif %}
         </div>
         {% if recent_invoices %}
         <div class="space-y-3">
@@ -80,8 +96,11 @@
                 </div>
                 <div class="text-right">
                     <p class="text-sm font-semibold text-gray-800">${{ "%.2f"|format(inv.total) }}</p>
-                    <span class="text-xs px-2 py-0.5 rounded-full {% if inv.status.value == 'paid' %}bg-green-100 text-green-700{% elif inv.status.value == 'sent' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-500{% endif %}">
-                        {{ inv.status.value }}
+                    <span class="text-xs px-2 py-0.5 rounded-full 
+                        {% if inv.status == 'paid' %}bg-green-100 text-green-700
+                        {% elif inv.status == 'sent' %}bg-blue-100 text-blue-700
+                        {% else %}bg-gray-100 text-gray-500{% endif %}">
+                        {{ inv.status }}
                     </span>
                 </div>
             </a>
@@ -91,6 +110,9 @@
         <div class="text-center py-8 text-gray-400">
             <i class="fas fa-file-invoice text-3xl mb-2"></i>
             <p class="text-sm">No invoices yet</p>
+            {% if user.role != 'user' %}
+            <a href="/invoices/new" class="mt-2 inline-block text-xs bg-purple-600 text-white px-3 py-1 rounded-lg">Create one</a>
+            {% endif %}
         </div>
         {% endif %}
     </div>
@@ -99,7 +121,11 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
         <div class="flex items-center justify-between mb-4">
             <h3 class="font-semibold text-gray-700">Recent Expenses</h3>
+            {% if user.role != 'user' %}
             <a href="/expenses" class="text-xs bg-orange-500 text-white px-3 py-1 rounded-lg hover:bg-orange-600">+ Add</a>
+            {% else %}
+            <span class="text-xs text-gray-400 px-3 py-1">Read Only</span>
+            {% endif %}
         </div>
         {% if recent_expenses %}
         <div class="space-y-3">
@@ -107,7 +133,7 @@
             <div class="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg">
                 <div>
                     <p class="text-sm font-medium text-gray-700">{{ exp.title }}</p>
-                    <p class="text-xs text-gray-400 capitalize">{{ exp.category.value }}</p>
+                    <p class="text-xs text-gray-400 capitalize">{{ exp.category }}</p>
                 </div>
                 <p class="text-sm font-semibold text-red-500">-${{ "%.2f"|format(exp.amount) }}</p>
             </div>
@@ -117,6 +143,9 @@
         <div class="text-center py-8 text-gray-400">
             <i class="fas fa-wallet text-3xl mb-2"></i>
             <p class="text-sm">No expenses yet</p>
+            {% if user.role != 'user' %}
+            <a href="/expenses" class="mt-2 inline-block text-xs bg-orange-500 text-white px-3 py-1 rounded-lg">Add one</a>
+            {% endif %}
         </div>
         {% endif %}
     </div>

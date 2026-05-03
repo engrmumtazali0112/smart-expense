@@ -8,71 +8,145 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/app.css">
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+        .sidebar-link.active {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(99, 102, 241, 0.08));
+            color: #7c3aed;
+            border-left: 3px solid #7c3aed;
+            font-weight: 600;
+        }
+        .stat-card {
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -12px rgba(109, 40, 217, 0.15);
+        }
+        .toast {
+            animation: slideInRight 0.3s ease;
+        }
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .role-badge-admin { background: linear-gradient(135deg, #7c3aed, #6366f1); }
+        .role-badge-manager { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+        .role-badge-user { background: linear-gradient(135deg, #10b981, #059669); }
+    </style>
 </head>
-<body class="bg-gray-50 font-sans">
+<body class="bg-gradient-to-br from-gray-50 via-white to-purple-50 font-sans">
 <div class="flex min-h-screen">
     <!-- Sidebar -->
-    <aside class="w-64 bg-white shadow-lg flex-shrink-0 hidden md:flex flex-col">
-        <div class="p-6 border-b border-gray-100">
-            <h1 class="text-xl font-bold text-purple-700">
-                <i class="fas fa-chart-pie mr-2"></i>SmartExpense
+    <aside class="w-64 bg-white/95 backdrop-blur-sm shadow-xl flex-shrink-0 hidden md:flex flex-col">
+        <div class="p-6 border-b border-purple-100">
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                <i class="fas fa-chart-pie mr-2 text-purple-600"></i>SmartExpense
             </h1>
-            <p class="text-xs text-gray-400 mt-1">Invoice & Expense Manager</p>
+            <p class="text-xs text-gray-400 mt-1">Professional Finance Hub</p>
         </div>
         <nav class="flex-1 p-4 space-y-1">
-            <a href="/dashboard"
-               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition {% if request.url.path == '/dashboard' %}active{% endif %}">
-                <i class="fas fa-home w-4"></i> Dashboard
+            <a href="/dashboard" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 hover:text-purple-700 transition-all duration-300">
+                <i class="fas fa-home w-5"></i> Dashboard
             </a>
-            <a href="/invoices"
-               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition {% if '/invoice' in request.url.path %}active{% endif %}">
-                <i class="fas fa-file-invoice w-4"></i> Invoices
+            <a href="/invoices" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 hover:text-purple-700 transition-all duration-300">
+                <i class="fas fa-file-invoice w-5"></i> Invoices
             </a>
-            <a href="/expenses"
-               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition {% if '/expense' in request.url.path %}active{% endif %}">
-                <i class="fas fa-wallet w-4"></i> Expenses
+            <a href="/expenses" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 hover:text-purple-700 transition-all duration-300">
+                <i class="fas fa-wallet w-5"></i> Expenses
             </a>
+            {% if user.role == 'admin' %}
+            <a href="/admin/users" class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-xl text-gray-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 hover:text-purple-700 transition-all duration-300">
+                <i class="fas fa-users w-5"></i> User Management
+            </a>
+            {% endif %}
         </nav>
-        <div class="p-4 border-t border-gray-100">
-            {% if user %}
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold text-sm">
+        <div class="p-4 border-t border-purple-100">
+            <div class="flex items-center gap-3 mb-4 p-2 rounded-xl bg-gradient-to-r from-purple-50 to-indigo-50">
+                <div class="w-10 h-10 rounded-full {% if user.role == 'admin' %}role-badge-admin{% elif user.role == 'manager' %}role-badge-manager{% else %}role-badge-user{% endif %} flex items-center justify-center text-white font-bold shadow-lg">
                     {{ user.name[0].upper() }}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-semibold text-gray-700 truncate">{{ user.name }}</p>
-                    <p class="text-xs text-gray-400 truncate">{{ user.email }}</p>
+                    <p class="text-sm font-semibold text-gray-800 truncate">{{ user.name }}</p>
+                    <p class="text-xs text-gray-500 truncate">{{ user.email }}</p>
+                    <span class="inline-block mt-1 text-xs px-2 py-0.5 rounded-full 
+                        {% if user.role == 'admin' %}bg-purple-100 text-purple-700
+                        {% elif user.role == 'manager' %}bg-blue-100 text-blue-700
+                        {% else %}bg-green-100 text-green-700{% endif %}">
+                        <i class="fas fa-{% if user.role == 'admin' %}crown{% elif user.role == 'manager' %}chart-line{% else %}eye{% endif %} mr-1"></i>
+                        {{ user.role|capitalize }}
+                    </span>
                 </div>
             </div>
-            {% endif %}
-            <a href="/logout" class="flex items-center gap-2 text-sm text-gray-500 hover:text-red-500 transition">
+            <a href="/logout" class="flex items-center gap-2 text-sm text-gray-500 hover:text-red-500 transition-all duration-300 p-2 rounded-lg hover:bg-red-50">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </a>
         </div>
     </aside>
 
-    <!-- Main content -->
     <main class="flex-1 overflow-auto">
-        <!-- Mobile header -->
-        <header class="md:hidden bg-white shadow-sm px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-            <h1 class="text-lg font-bold text-purple-700">
+        <header class="md:hidden bg-white/95 backdrop-blur-sm shadow-sm px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+            <h1 class="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                 <i class="fas fa-chart-pie mr-2"></i>SmartExpense
             </h1>
-            <button onclick="toggleMobileMenu()" class="text-gray-600 p-1">
-                <i class="fas fa-bars text-lg"></i>
+            <button onclick="toggleMobileMenu()" class="text-gray-600 p-2 rounded-lg hover:bg-purple-50 transition">
+                <i class="fas fa-bars text-xl"></i>
             </button>
         </header>
-        <div class="p-5 md:p-8">
+        <div class="p-5 md:p-8 animate-fade-up">
             {% block content %}{% endblock %}
         </div>
     </main>
 </div>
 
-<!-- Toast container -->
 <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2 max-w-xs"></div>
 
-<script src="/static/js/app.js"></script>
+<script>
+function showToast(message, type = 'success') {
+    const colorMap = {
+        success: 'bg-gradient-to-r from-green-500 to-emerald-600',
+        error: 'bg-gradient-to-r from-red-500 to-rose-600',
+        info: 'bg-gradient-to-r from-blue-500 to-indigo-600'
+    };
+    const iconMap = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle'
+    };
+    const toast = $(`
+        <div class="toast ${colorMap[type]} text-white px-5 py-3 rounded-xl shadow-2xl text-sm flex items-center gap-2 mb-2">
+            <i class="fas ${iconMap[type]} text-lg"></i>
+            <span>${message}</span>
+            <button onclick="$(this).parent().fadeOut(300, function() { $(this).remove(); })" class="ml-3 text-white/80 hover:text-white">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    `);
+    $('#toast-container').append(toast);
+    toast.hide().fadeIn(300);
+    setTimeout(() => toast.fadeOut(300, () => toast.remove()), 4000);
+}
+
+function toggleMobileMenu() {
+    $('aside').toggleClass('hidden').toggleClass('flex');
+}
+
+$(function() {
+    const path = window.location.pathname;
+    $('.sidebar-link').each(function() {
+        const href = $(this).attr('href');
+        if (href && path.startsWith(href) && href !== '/') {
+            $(this).addClass('active');
+        }
+    });
+});
+</script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

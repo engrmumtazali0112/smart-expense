@@ -6,9 +6,15 @@
         <h2 class="text-2xl font-bold text-gray-800">Expenses</h2>
         <p class="text-gray-500 text-sm mt-1">{{ total }} expense{{ 's' if total != 1 }} · Total: ${{ "%.2f"|format(total_amount) }}</p>
     </div>
+    {% if user.role != 'user' %}
     <button onclick="openModal()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
         <i class="fas fa-plus"></i> Add Expense
     </button>
+    {% else %}
+    <div class="text-sm text-gray-400 bg-gray-100 px-4 py-2 rounded-lg">
+        <i class="fas fa-lock mr-1"></i> Read Only Mode
+    </div>
+    {% endif %}
 </div>
 
 <!-- Filters -->
@@ -56,15 +62,19 @@
                     {% if exp.description %}<p class="text-xs text-gray-400 mt-0.5">{{ exp.description[:60] }}</p>{% endif %}
                 </td>
                 <td class="px-5 py-3 hidden sm:table-cell">
-                    <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs capitalize">{{ exp.category.value }}</span>
+                    <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs capitalize">{{ exp.category }}</span>
                 </td>
                 <td class="px-5 py-3 text-gray-500 hidden md:table-cell">{{ exp.date.strftime('%b %d, %Y') }}</td>
                 <td class="px-5 py-3 text-right font-semibold text-red-500">-${{ "%.2f"|format(exp.amount) }}</td>
                 <td class="px-5 py-3 text-right">
                     <div class="flex items-center justify-end gap-2">
-                        <button onclick="editExpense({{ exp.id }}, '{{ exp.title }}', {{ exp.amount }}, '{{ exp.category.value }}', '{{ exp.description or '' }}', '{{ exp.date.strftime('%Y-%m-%d') }}')"
+                        {% if user.role != 'user' %}
+                        <button onclick="editExpense({{ exp.id }}, '{{ exp.title }}', {{ exp.amount }}, '{{ exp.category }}', '{{ exp.description or '' }}', '{{ exp.date.strftime('%Y-%m-%d') }}')"
                             class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
                         <button onclick="deleteExpense({{ exp.id }})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                        {% else %}
+                        <span class="text-gray-400 text-xs">Read only</span>
+                        {% endif %}
                     </div>
                 </td>
             </tr>
@@ -84,7 +94,11 @@
     <div class="text-center py-16 text-gray-400">
         <i class="fas fa-wallet text-5xl mb-4"></i>
         <p class="text-lg font-medium">No expenses found</p>
+        {% if user.role != 'user' %}
         <button onclick="openModal()" class="mt-3 bg-orange-500 text-white px-5 py-2 rounded-lg text-sm hover:bg-orange-600">Add your first expense</button>
+        {% else %}
+        <p class="text-sm mt-2">Contact an admin to add expenses</p>
+        {% endif %}
     </div>
     {% endif %}
 </div>
@@ -135,8 +149,7 @@
         </div>
     </div>
 </div>
-{% endblock %}
-{% block scripts %}
+
 <script>
 function openModal() {
     $('#modal-title').text('Add Expense');
@@ -173,7 +186,7 @@ function saveExpense() {
     const url = id ? `/api/expenses/${id}` : '/api/expenses';
     $('#modal-save-btn').text('Saving...').prop('disabled', true);
     $.ajax({
-        url, method, contentType: 'application/json', data: JSON.stringify(data),
+        url: url, method: method, contentType: 'application/json', data: JSON.stringify(data),
         success: () => { showToast('Expense saved!'); setTimeout(() => location.reload(), 800); },
         error: (xhr) => { showToast(xhr.responseJSON?.detail || 'Failed', 'error'); $('#modal-save-btn').text('Save Expense').prop('disabled', false); }
     });
@@ -185,7 +198,5 @@ function deleteExpense(id) {
         error: () => showToast('Failed to delete', 'error')
     });
 }
-// Set today as default date
-$('#exp-date').val(new Date().toISOString().split('T')[0]);
 </script>
 {% endblock %}

@@ -7,51 +7,146 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .role-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .role-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.2);
+        }
+        .role-card.selected {
+            border: 2px solid #7c3aed;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(99, 102, 241, 0.05));
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-purple-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
-<div class="w-full max-w-md">
-    <div class="bg-white rounded-2xl shadow-xl p-8">
-        <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <i class="fas fa-chart-pie text-purple-700 text-2xl"></i>
+<body class="bg-gradient-to-br from-purple-50 via-white to-indigo-100 min-h-screen flex items-center justify-center p-4">
+<div class="w-full max-w-md animate-fade-up">
+    <div class="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8">
+        <div class="text-center mb-6">
+            <div class="w-20 h-20 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <i class="fas fa-chart-pie text-white text-3xl"></i>
             </div>
-            <h1 class="text-2xl font-bold text-gray-800">Welcome back</h1>
-            <p class="text-gray-500 text-sm mt-1">Sign in to SmartExpense</p>
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">SmartExpense</h1>
+            <p class="text-gray-500 text-sm mt-1">Professional Finance Management</p>
         </div>
+        
+        <!-- Role Selection Cards -->
+        <div class="mb-6">
+            <p class="text-xs text-gray-500 mb-3 text-center">Select login type</p>
+            <div class="grid grid-cols-3 gap-3">
+                <div class="role-card rounded-xl p-3 text-center border-2 border-transparent" data-role="admin">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-crown text-purple-600 text-xl"></i>
+                    </div>
+                    <p class="text-xs font-semibold text-gray-700">Admin</p>
+                    <p class="text-xs text-gray-400">Full Access</p>
+                </div>
+                <div class="role-card rounded-xl p-3 text-center border-2 border-transparent" data-role="manager">
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-chart-line text-blue-600 text-xl"></i>
+                    </div>
+                    <p class="text-xs font-semibold text-gray-700">Manager</p>
+                    <p class="text-xs text-gray-400">View & Manage</p>
+                </div>
+                <div class="role-card rounded-xl p-3 text-center border-2 border-transparent" data-role="viewer">
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <i class="fas fa-eye text-green-600 text-xl"></i>
+                    </div>
+                    <p class="text-xs font-semibold text-gray-700">Viewer</p>
+                    <p class="text-xs text-gray-400">Read Only</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Accounts Info -->
+        <div class="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-3 mb-5">
+            <p class="text-xs font-semibold text-gray-600 mb-2 text-center">Demo Accounts</p>
+            <div class="space-y-1 text-xs text-gray-500">
+                <div class="flex justify-between"><span>👑 Admin:</span><span class="font-mono">admin@demo.com / admin123</span></div>
+                <div class="flex justify-between"><span>📊 Manager:</span><span class="font-mono">manager@demo.com / manager123</span></div>
+                <div class="flex justify-between"><span>👁️ Viewer:</span><span class="font-mono">viewer@demo.com / viewer123</span></div>
+            </div>
+        </div>
+
         <div id="error-msg" class="hidden bg-red-50 text-red-600 text-sm px-4 py-3 rounded-lg mb-4"></div>
+        
         <form id="login-form" class="space-y-4">
+            <input type="hidden" id="selected-role" name="role" value="">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" name="email" required placeholder="you@example.com"
+                <input type="email" id="email" name="email" required placeholder="Enter your email"
                     class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                <input type="password" name="password" required placeholder="••••••••"
+                <input type="password" id="password" name="password" required placeholder="Enter your password"
                     class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm">
             </div>
             <button type="submit" id="submit-btn"
-                class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 rounded-lg transition text-sm">
-                Sign In
+                class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 rounded-lg transition-all duration-300 text-sm shadow-lg">
+                <i class="fas fa-sign-in-alt mr-2"></i> Sign In
             </button>
         </form>
-        <p class="text-center text-sm text-gray-500 mt-6">
-            Don't have an account? <a href="/signup" class="text-purple-600 font-medium hover:underline">Sign up</a>
-        </p>
+        
+        <!-- Sign Up Link Added Here -->
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600">
+                Don't have an account? 
+                <a href="/signup" class="text-purple-600 font-semibold hover:underline">Sign up</a>
+            </p>
+            <p class="text-xs text-gray-400 mt-3">
+                <i class="fas fa-shield-alt mr-1"></i> Role-based access control
+            </p>
+        </div>
     </div>
 </div>
+
 <script>
+let selectedRole = '';
+
+$('.role-card').on('click', function() {
+    $('.role-card').removeClass('selected');
+    $(this).addClass('selected');
+    selectedRole = $(this).data('role');
+    $('#selected-role').val(selectedRole);
+    
+    if (selectedRole === 'admin') {
+        $('#email').val('admin@demo.com');
+        $('#password').val('admin123');
+    } else if (selectedRole === 'manager') {
+        $('#email').val('manager@demo.com');
+        $('#password').val('manager123');
+    } else if (selectedRole === 'viewer') {
+        $('#email').val('viewer@demo.com');
+        $('#password').val('viewer123');
+    }
+});
+
 $('#login-form').on('submit', function(e) {
     e.preventDefault();
+    if (!selectedRole) {
+        $('#error-msg').text('Please select a login role').removeClass('hidden');
+        return;
+    }
+    
     const btn = $('#submit-btn');
-    btn.text('Signing in...').prop('disabled', true);
+    btn.html('<i class="fas fa-spinner fa-spin mr-2"></i> Signing in...').prop('disabled', true);
+    
     $.ajax({
-        url: '/api/auth/login', method: 'POST',
+        url: '/api/auth/login',
+        method: 'POST',
         data: $(this).serialize(),
         success: (res) => window.location.href = res.redirect,
         error: (xhr) => {
             $('#error-msg').text(xhr.responseJSON?.detail || 'Login failed').removeClass('hidden');
-            btn.text('Sign In').prop('disabled', false);
+            btn.html('<i class="fas fa-sign-in-alt mr-2"></i> Sign In').prop('disabled', false);
         }
     });
 });
